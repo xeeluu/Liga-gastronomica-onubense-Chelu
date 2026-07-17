@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Liga Gastronómica Onubense</title>
+<meta name="theme-color" content="#123647" />
+<meta name="description" content="Clasificación personal de bares y restaurantes de Huelva" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --marino:#123647; --marino-light:#1D4E64; --marino-pale:#E8EEF0;
+    --ocre:#D79A2C; --coral:#C1442D; --crema:#F1E9D8; --crema-deep:#E6DBC2; --tinta:#201A14;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--crema);font-family:'Work Sans',sans-serif;color:var(--tinta);}
+  .hero{background:var(--marino);padding:28px 16px 20px;}
+  .eyebrow{display:flex;align-items:center;gap:6px;color:var(--ocre);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  h1{color:#fff;font-family:'Fraunces',serif;font-size:24px;margin:0 0 4px;line-height:1.15;}
+  .sub{color:var(--marino-pale);font-size:14px;margin:0;}
+  .leader{margin-top:16px;background:var(--marino-light);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;}
+  .leader-label{color:var(--ocre);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 2px;}
+  .leader-name{color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:16px;margin:0;}
+  .leader-pts{color:var(--ocre);font-family:'Bebas Neue',sans-serif;font-size:26px;margin:0;}
+
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 4px;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex-shrink:0;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid var(--crema-deep);background:#fff;color:var(--marino);cursor:pointer;}
+  .tab.active{background:var(--ocre);color:#fff;border-color:var(--ocre);}
+
+  .content{padding:16px;}
+  .btn-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;font-weight:700;font-size:14px;background:var(--coral);color:#fff;border:none;margin-bottom:16px;cursor:pointer;}
+
+  .card{background:#fff;border:2px solid var(--marino);border-radius:12px;padding:16px;margin-bottom:16px;}
+  .card h3{font-family:'Fraunces',serif;color:var(--marino);margin:0 0 12px;font-size:18px;display:flex;justify-content:space-between;align-items:center;}
+  .card h3 button{background:none;border:none;cursor:pointer;padding:4px;}
+  label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--marino);margin-bottom:4px;}
+  input[type=text], input[type=number], textarea, select{width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--crema-deep);font-size:14px;font-family:inherit;margin-bottom:14px;}
+  textarea{resize:none;}
+  .slider-row{margin-bottom:14px;}
+  .slider-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;}
+  .slider-top .val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--coral);}
+  input[type=range]{width:100%;accent-color:var(--ocre);}
+  .hint{font-size:11px;color:var(--marino-light);margin-top:2px;}
+  .warn{font-size:12px;color:var(--coral);margin:-8px 0 12px;}
+
+  .section-box{background:var(--crema);border-radius:10px;padding:12px;margin-bottom:14px;}
+  .section-box .stitle{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--marino);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .section-box .subl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--marino-light);margin-bottom:4px;}
+  .dish-item{display:flex;justify-content:space-between;align-items:flex-start;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:6px;}
+  .dish-item strong{font-size:13px;}
+  .dish-item p{font-size:12px;color:var(--marino-light);margin:2px 0 0;}
+  .dish-item button{background:none;border:none;cursor:pointer;color:var(--coral);flex-shrink:0;margin-left:8px;}
+  .btn-secondary{background:var(--marino);color:#fff;border:none;border-radius:10px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;}
+  .btn-secondary.coral{background:var(--coral);}
+  .divider{border-top:1px dashed var(--crema-deep);margin:12px 0;}
+
+  .cat-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+  .cat-chip{padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--crema-deep);background:#fff;color:var(--marino);cursor:pointer;}
+  .cat-chip.active{background:var(--marino);color:#fff;border-color:var(--marino);}
+
+  .photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .photo-card{background:#fff;border-radius:10px;padding:6px;}
+  .photo-card img{width:100%;height:96px;object-fit:cover;border-radius:8px;display:block;}
+  .photo-card .rel{position:relative;}
+  .photo-card .rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:20px;height:20px;color:#fff;font-size:12px;cursor:pointer;}
+  .photo-card input{margin:6px 0 0;font-size:11px;padding:6px 8px;}
+
+  .loc-row{display:flex;gap:8px;}
+  .loc-row > div{flex:1;}
+
+  .form-actions{display:flex;gap:8px;}
+  .btn-save{flex:1;background:var(--ocre);color:var(--tinta);border:none;border-radius:10px;padding:11px;font-weight:700;font-size:14px;cursor:pointer;}
+  .btn-cancel{background:var(--crema);color:var(--marino);border:none;border-radius:10px;padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;}
+
+  .row{background:#fff;border:1px solid var(--crema-deep);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+  .row-head{width:100%;display:flex;align-items:center;gap:12px;padding:12px;background:none;border:none;text-align:left;cursor:pointer;}
+  .pos{width:28px;height:28px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;background:var(--marino-pale);color:var(--marino);}
+  .pos.first{background:var(--ocre);color:#fff;}
+  .row-name{flex:1;min-width:0;}
+  .row-name p{font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-scores{display:flex;gap:10px;margin-top:2px;}
+  .row-scores span{font-size:11px;color:var(--marino-light);}
+  .row-pts{text-align:right;flex-shrink:0;}
+  .row-pts .n{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--coral);line-height:1;}
+  .row-pts .l{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--marino-light);}
+  .row-body{padding:0 12px 12px;border-top:1px solid var(--crema);}
+  .cat-tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+  .cat-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--marino-pale);color:var(--marino);}
+  .row-body p.comment{font-size:13px;margin:0 0 12px;}
+  .dish-tag{background:var(--crema);border-radius:8px;padding:6px 10px;margin-bottom:6px;}
+  .dish-tag strong{font-size:12px;}
+  .dish-tag p{font-size:12px;color:var(--marino-light);margin:2px 0 0;}
+  .row-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+  .row-photos button{background:none;border:none;padding:0;cursor:pointer;}
+  .row-photos img{width:100%;height:60px;object-fit:cover;border-radius:6px;display:block;}
+  .row-photos .cap{font-size:9px;color:var(--marino-light);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .maps-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;background:var(--marino-pale);color:var(--marino);text-decoration:none;margin-bottom:12px;}
+  .row-actions{display:flex;gap:8px;margin-top:4px;}
+  .row-actions button{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;border:none;cursor:pointer;}
+  .btn-edit{background:var(--marino-pale);color:var(--marino);}
+  .btn-del{background:#FBE9E5;color:var(--coral);}
+
+  .empty{text-align:center;padding:40px 16px;border-radius:12px;background:#fff;border:1px dashed var(--crema-deep);}
+  .empty p.t{font-weight:600;color:var(--marino);margin:8px 0 2px;}
+  .empty p.s{font-size:12px;color:var(--marino-light);margin:0;}
+
+  #mapContainer{height:420px;border-radius:12px;overflow:hidden;border:1px solid var(--crema-deep);}
+  .map-note{font-size:12px;color:var(--marino-light);margin-top:10px;}
+  .leaflet-popup-content-wrapper{border-radius:10px;}
+
+  footer{text-align:center;font-size:11px;color:var(--marino-light);padding:0 16px 26px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">🏆 Temporada 2026</div>
+  <h1>Liga Gastronómica Onubense</h1>
+  <p class="sub">📍 Bares y restaurantes de Huelva a examen</p>
+  <div id="leaderBox"></div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="content">
+  <button class="btn-add" id="btnAdd">+ Fichar un local nuevo</button>
+  <div id="formHost"></div>
+  <div id="mainView"></div>
+</div>
+
+<footer>Huelva, cuna del fútbol en España — que esta liga esté a la altura del Decano.</footer>
+
+<script>
+const STORAGE_KEY = "liga-onubense-entries";
+const MAX_PHOTOS = 4;
+const HUELVA_CENTER = [37.2571, -6.9509];
+
+const CATEGORIES = [
+  { key: "imprescindibles", label: "Imprescindibles" },
+  { key: "tapeo", label: "Tapeo" },
+  { key: "marisqueria", label: "Marisquería" },
+  { key: "freiduria", label: "Freiduría" },
+  { key: "carnes", label: "Carnes y Asados" },
+  { key: "casera", label: "Cocina Casera" },
+  { key: "chiringuito", label: "Chiringuitos de Playa" },
+  { key: "dulces", label: "Dulces y Copas" },
+  { key: "cerveceria", label: "Cervecería" },
+];
+const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]));
+const DISH_SUGGESTIONS = ["Jamón de Jabugo","Gambas blancas de Huelva","Coquinas","Choco frito","Raya en pimentón","Tortillitas de camarones","Habas con jamón","Rape en amarillo","Solomillo al whisky","Papas aliñás","Pulpo a la brasa","Salmorejo"];
+const BEER_SUGGESTIONS = ["Cruzcampo","Alhambra Especial","Alhambra Reserva 1925","Mahou","Estrella Galicia","Estrella de Levante","San Miguel","1906","Cerveza artesana local"];
+
+let entries = [];
+let activeTab = "todos";
+let showForm = false;
+let editing = null;
+let draftCategories = [];
+let draftDishes = [];
+let draftOtherDishes = [];
+let draftBeers = [];
+let draftPhotos = [];
+let openRows = new Set();
+let leafletMap = null;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function avgScore(e){ return (Number(e.comida)+Number(e.servicio)+Number(e.precio))/3; }
+function esc(s){ const d=document.createElement('div'); d.textContent = s ?? ""; return d.innerHTML; }
+
+function extractLatLng(url){
+  if(!url) return null;
+  let m = url.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if(!m) m = url.match(/[?&]q=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if(!m) return null;
+  return { lat: m[1], lng: m[2] };
+}
+
+function compressImage(file, maxDim=640, quality=0.55){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > height && width > maxDim){ height = height*(maxDim/width); width = maxDim; }
+        else if(height > maxDim){ width = width*(maxDim/height); height = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    entries = raw ? JSON.parse(raw) : [];
+  }catch(e){ entries = []; }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+  catch(e){ alert("No se pudo guardar (puede que se haya llenado el espacio disponible)."); }
+}
+
+function renderTabs(){
+  const tabs = [{key:"todos",label:"Clasificación"},{key:"mapa",label:"🗺 Vista Mapa"}, ...CATEGORIES];
+  document.getElementById('tabs').innerHTML = tabs.map(t =>
+    `<button class="tab ${activeTab===t.key?'active':''}" data-tab="${t.key}">${esc(t.label)}</button>`
+  ).join('');
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.onclick = ()=>{ activeTab = b.dataset.tab; renderAll(); };
+  });
+}
+
+function renderLeader(){
+  const box = document.getElementById('leaderBox');
+  if(entries.length === 0){ box.innerHTML = ""; return; }
+  const leader = entries.slice().sort((a,b)=>avgScore(b)-avgScore(a))[0];
+  box.innerHTML = `<div class="leader">
+    <div>
+      <p class="leader-label">Líder de la liga</p>
+      <p class="leader-name">${esc(leader.name)}</p>
+    </div>
+    <p class="leader-pts">${avgScore(leader).toFixed(1)}</p>
+  </div>`;
+}
+
+function toggleDraftCategory(key){
+  const i = draftCategories.indexOf(key);
+  if(i>=0) draftCategories.splice(i,1); else draftCategories.push(key);
+  renderCatPicker();
+}
+function renderCatPicker(){
+  const host = document.getElementById('catPicker');
+  if(!host) return;
+  host.innerHTML = CATEGORIES.map(c => `<button type="button" class="cat-chip ${draftCategories.includes(c.key)?'active':''}" data-cat="${c.key}">${esc(c.label)}</button>`).join('');
+  host.querySelectorAll('.cat-chip').forEach(b=>{
+    b.onclick = ()=> toggleDraftCategory(b.dataset.cat);
+  });
+}
+
+function renderForm(){
+  const host = document.getElementById('formHost');
+  document.getElementById('btnAdd').style.display = showForm ? 'none' : 'block';
+  if(!showForm){ host.innerHTML = ""; return; }
+
+  const e = editing || { name:"", comida:7, servicio:7, precio:7, comment:"", mapsUrl:"", lat:"", lng:"" };
+  if(editing){
+    draftCategories = [...(editing.categories||[])];
+    draftDishes = [...(editing.dishes||[])];
+    draftOtherDishes = [...(editing.otherDishes||[])];
+    draftBeers = [...(editing.beers||[])];
+    draftPhotos = [...(editing.photos||[])];
+  }
+
+  host.innerHTML = `
+    <div class="card">
+      <h3>${editing ? "Editar fichaje" : "Nuevo fichaje"} <button id="btnCloseForm">✕</button></h3>
+      <label>Nombre del local</label>
+      <input type="text" id="fName" placeholder="Ej: Bar Casa Rufino" value="${esc(e.name)}" />
+
+      <label>Categorías (elige una o varias)</label>
+      <div class="cat-picker" id="catPicker"></div>
+      <p class="warn" id="catWarn" style="display:none">Elige al menos una categoría.</p>
+      <div style="margin-bottom:10px"></div>
+
+      <div class="slider-row">
+        <div class="slider-top"><label style="margin:0">Comida</label><span class="val" id="vComida">${e.comida}</span></div>
+        <input type="range" min="1" max="10" id="fComida" value="${e.comida}" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-top"><label style="margin:0">Servicio</label><span class="val" id="vServicio">${e.servicio}</span></div>
+        <input type="range" min="1" max="10" id="fServicio" value="${e.servicio}" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-top"><label style="margin:0">Precio</label><span class="val" id="vPrecio">${e.precio}</span></div>
+        <input type="range" min="1" max="10" id="fPrecio" value="${e.precio}" />
+        <p class="hint">10 = tirado de precio · 1 = te han clavao</p>
+      </div>
+
+      <label>Comentario general</label>
+      <textarea id="fComment" rows="3" placeholder="¿Qué tal la experiencia? Ambiente, terraza, si repetirías...">${esc(e.comment)}</textarea>
+
+      <div class="section-box">
+        <p class="stitle">🍽 Platos</p>
+        <p class="subl">Platos típicos probados</p>
+        <div id="dishList"></div>
+        <input type="text" id="dName" placeholder="Nombre del plato" list="dishSuggestions" />
+        <datalist id="dishSuggestions">${DISH_SUGGESTIONS.map(d=>`<option value="${esc(d)}"></option>`).join('')}</datalist>
+        <input type="text" id="dComment" placeholder="Comentario sobre el plato (opcional)" />
+        <button class="btn-secondary" id="btnAddDish" type="button">+ Añadir plato típico</button>
+
+        <div class="divider"></div>
+
+        <p class="subl">Otros platos probados</p>
+        <div id="otroList"></div>
+        <input type="text" id="oName" placeholder="Nombre del plato" />
+        <textarea id="oNotes" rows="2" placeholder="Notas sobre este plato..."></textarea>
+        <button class="btn-secondary coral" id="btnAddOtro" type="button">+ Añadir otro plato</button>
+      </div>
+
+      <div class="section-box">
+        <p class="stitle">🍺 Cerveza</p>
+        <div id="beerList"></div>
+        <input type="text" id="bName" placeholder="Nombre de la cerveza" list="beerSuggestions" />
+        <datalist id="beerSuggestions">${BEER_SUGGESTIONS.map(b=>`<option value="${esc(b)}"></option>`).join('')}</datalist>
+        <div class="slider-row">
+          <div class="slider-top"><label style="margin:0">Puntuación</label><span class="val" id="vBeerScore">7</span></div>
+          <input type="range" min="1" max="10" id="bScore" value="7" />
+        </div>
+        <input type="text" id="bComment" placeholder="Comentario (opcional)" />
+        <button class="btn-secondary" id="btnAddBeer" type="button">+ Añadir cerveza</button>
+      </div>
+
+      <div class="section-box">
+        <p class="stitle">📷 Fotos (ticket, plato...)</p>
+        <div class="photo-grid" id="photoGrid"></div>
+        <input type="file" accept="image/*" multiple id="fPhotos" />
+        <p class="hint" id="photoHint">Puedes añadir hasta ${MAX_PHOTOS} fotos. Se comprimen automáticamente para ahorrar espacio.</p>
+      </div>
+
+      <div class="section-box">
+        <p class="stitle">🧭 Ubicación</p>
+        <label>Enlace de Google Maps</label>
+        <input type="text" id="fMapsUrl" placeholder="Pega aquí el enlace para compartir de Google Maps" value="${esc(e.mapsUrl||'')}" />
+        <div class="loc-row">
+          <div>
+            <label>Latitud</label>
+            <input type="text" id="fLat" placeholder="37.2571" value="${esc(e.lat||'')}" />
+          </div>
+          <div>
+            <label>Longitud</label>
+            <input type="text" id="fLng" placeholder="-6.9509" value="${esc(e.lng||'')}" />
+          </div>
+        </div>
+        <p class="hint">Si pegas el enlace de compartir, intento sacar las coordenadas solo. Si no, mantén pulsado el punto en Google Maps y verás lat/lng arriba para copiarlas aquí. Con esto el local aparecerá en la Vista Mapa.</p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-save" id="btnSaveEntry" type="button">Guardar fichaje</button>
+        <button class="btn-cancel" id="btnCancelForm" type="button">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  renderCatPicker();
+  renderDraftDishes();
+  renderDraftOtro();
+  renderDraftBeers();
+  renderDraftPhotos();
+
+  document.getElementById('fComida').oninput = (ev)=>{ document.getElementById('vComida').textContent = ev.target.value; };
+  document.getElementById('fServicio').oninput = (ev)=>{ document.getElementById('vServicio').textContent = ev.target.value; };
+  document.getElementById('fPrecio').oninput = (ev)=>{ document.getElementById('vPrecio').textContent = ev.target.value; };
+
+  document.getElementById('btnAddDish').onclick = ()=>{
+    const name = document.getElementById('dName').value.trim();
+    const comment = document.getElementById('dComment').value.trim();
+    if(!name) return;
+    draftDishes.push({ id: uid(), name, comment });
+    document.getElementById('dName').value = "";
+    document.getElementById('dComment').value = "";
+    renderDraftDishes();
+  };
+
+  document.getElementById('btnAddOtro').onclick = ()=>{
+    const name = document.getElementById('oName').value.trim();
+    const notes = document.getElementById('oNotes').value.trim();
+    if(!name) return;
+    draftOtherDishes.push({ id: uid(), name, notes });
+    document.getElementById('oName').value = "";
+    document.getElementById('oNotes').value = "";
+    renderDraftOtro();
+  };
+
+  document.getElementById('bScore').oninput = (ev)=>{ document.getElementById('vBeerScore').textContent = ev.target.value; };
+
+  document.getElementById('btnAddBeer').onclick = ()=>{
+    const name = document.getElementById('bName').value.trim();
+    const score = Number(document.getElementById('bScore').value);
+    const comment = document.getElementById('bComment').value.trim();
+    if(!name) return;
+    draftBeers.push({ id: uid(), name, score, comment });
+    document.getElementById('bName').value = "";
+    document.getElementById('bComment').value = "";
+    document.getElementById('bScore').value = 7;
+    document.getElementById('vBeerScore').textContent = 7;
+    renderDraftBeers();
+  };
+
+  document.getElementById('fMapsUrl').oninput = (ev)=>{
+    const latEl = document.getElementById('fLat');
+    const lngEl = document.getElementById('fLng');
+    if(!latEl.value && !lngEl.value){
+      const found = extractLatLng(ev.target.value);
+      if(found){ latEl.value = found.lat; lngEl.value = found.lng; }
+    }
+  };
+
+  document.getElementById('fPhotos').onchange = async (ev)=>{
+    const room = MAX_PHOTOS - draftPhotos.length;
+    if(room<=0) return;
+    const files = Array.from(ev.target.files).slice(0, room);
+    document.getElementById('photoHint').textContent = "Procesando...";
+    for(const f of files){
+      try{
+        const dataUrl = await compressImage(f);
+        draftPhotos.push({ id: uid(), dataUrl, caption: "" });
+      }catch(err){}
+    }
+    document.getElementById('photoHint').textContent = `Puedes añadir hasta ${MAX_PHOTOS} fotos. Se comprimen automáticamente para ahorrar espacio.`;
+    ev.target.value = "";
+    renderDraftPhotos();
+  };
+
+  document.getElementById('btnCloseForm').onclick = closeForm;
+  document.getElementById('btnCancelForm').onclick = closeForm;
+
+  document.getElementById('btnSaveEntry').onclick = ()=>{
+    const name = document.getElementById('fName').value.trim();
+    if(!name) return;
+    if(draftCategories.length===0){
+      document.getElementById('catWarn').style.display = 'block';
+      return;
+    }
+    const latVal = document.getElementById('fLat').value.trim();
+    const lngVal = document.getElementById('fLng').value.trim();
+    const entry = {
+      id: editing ? editing.id : uid(),
+      name,
+      categories: [...draftCategories],
+      comida: Number(document.getElementById('fComida').value),
+      servicio: Number(document.getElementById('fServicio').value),
+      precio: Number(document.getElementById('fPrecio').value),
+      comment: document.getElementById('fComment').value.trim(),
+      dishes: draftDishes,
+      otherDishes: draftOtherDishes,
+      beers: draftBeers,
+      photos: draftPhotos,
+      mapsUrl: document.getElementById('fMapsUrl').value.trim(),
+      lat: latVal || null,
+      lng: lngVal || null,
+      date: editing ? editing.date : new Date().toISOString(),
+    };
+    const idx = entries.findIndex(x=>x.id===entry.id);
+    if(idx>=0) entries[idx] = entry; else entries.push(entry);
+    save();
+    closeForm();
+  };
+}
+
+function renderDraftDishes(){
+  const host = document.getElementById('dishList');
+  if(!host) return;
+  host.innerHTML = draftDishes.map(d=>`
+    <div class="dish-item">
+      <div><strong>${esc(d.name)}</strong>${d.comment?`<p>${esc(d.comment)}</p>`:""}</div>
+      <button data-id="${d.id}" class="btnRemoveDish">✕</button>
+    </div>
+  `).join('');
+  host.querySelectorAll('.btnRemoveDish').forEach(b=>{
+    b.onclick = ()=>{ draftDishes = draftDishes.filter(d=>d.id!==b.dataset.id); renderDraftDishes(); };
+  });
+}
+
+function renderDraftOtro(){
+  const host = document.getElementById('otroList');
+  if(!host) return;
+  host.innerHTML = draftOtherDishes.map(d=>`
+    <div class="dish-item">
+      <div><strong>${esc(d.name)}</strong>${d.notes?`<p>${esc(d.notes)}</p>`:""}</div>
+      <button data-id="${d.id}" class="btnRemoveOtro">✕</button>
+    </div>
+  `).join('');
+  host.querySelectorAll('.btnRemoveOtro').forEach(b=>{
+    b.onclick = ()=>{ draftOtherDishes = draftOtherDishes.filter(d=>d.id!==b.dataset.id); renderDraftOtro(); };
+  });
+}
+
+function renderDraftBeers(){
+  const host = document.getElementById('beerList');
+  if(!host) return;
+  host.innerHTML = draftBeers.map(b=>`
+    <div class="dish-item">
+      <div><strong>${esc(b.name)}</strong> <span style="color:#C1442D;font-family:'Bebas Neue',sans-serif;font-size:14px;">${b.score}</span>${b.comment?`<p>${esc(b.comment)}</p>`:""}</div>
+      <button data-id="${b.id}" class="btnRemoveBeer">✕</button>
+    </div>
+  `).join('');
+  host.querySelectorAll('.btnRemoveBeer').forEach(b=>{
+    b.onclick = ()=>{ draftBeers = draftBeers.filter(x=>x.id!==b.dataset.id); renderDraftBeers(); };
+  });
+}
+
+function renderDraftPhotos(){
+  const host = document.getElementById('photoGrid');
+  if(!host) return;
+  host.innerHTML = draftPhotos.map(p=>`
+    <div class="photo-card">
+      <div class="rel">
+        <img src="${p.dataUrl}" />
+        <button class="rm" data-id="${p.id}">✕</button>
+      </div>
+      <input type="text" data-cap="${p.id}" placeholder="Etiqueta (ej: ticket)" value="${esc(p.caption)}" />
+    </div>
+  `).join('');
+  host.querySelectorAll('.rm').forEach(b=>{
+    b.onclick = ()=>{ draftPhotos = draftPhotos.filter(p=>p.id!==b.dataset.id); renderDraftPhotos(); };
+  });
+  host.querySelectorAll('[data-cap]').forEach(inp=>{
+    inp.oninput = ()=>{
+      const p = draftPhotos.find(p=>p.id===inp.dataset.cap);
+      if(p) p.caption = inp.value;
+    };
+  });
+}
+
+function closeForm(){
+  showForm = false; editing = null;
+  draftCategories = []; draftDishes = []; draftOtherDishes = []; draftBeers = []; draftPhotos = [];
+  renderAll();
+}
+
+function renderList(){
+  const host = document.getElementById('mainView');
+  const visible = (activeTab==="todos" ? entries : entries.filter(e=>(e.categories||[]).includes(activeTab)))
+    .slice().sort((a,b)=>avgScore(b)-avgScore(a));
+
+  if(visible.length===0){
+    host.innerHTML = `<div class="empty">⚓<p class="t">Aún no hay nadie fichado aquí</p><p class="s">Sal a probar y vuelve a apuntar el resultado</p></div>`;
+    return;
+  }
+
+  host.innerHTML = visible.map((e,i)=>{
+    const open = openRows.has(e.id);
+    const pts = avgScore(e).toFixed(1);
+    const mapHref = e.mapsUrl || ((e.lat && e.lng) ? `https://www.google.com/maps?q=${e.lat},${e.lng}` : null);
+    return `
+    <div class="row" id="row-${e.id}">
+      <button class="row-head" data-id="${e.id}">
+        <div class="pos ${i===0?'first':''}">${i+1}</div>
+        <div class="row-name">
+          <p>${esc(e.name)}</p>
+          <div class="row-scores">
+            <span>C ${e.comida}</span><span>S ${e.servicio}</span><span>P ${e.precio}</span>
+          </div>
+        </div>
+        <div class="row-pts"><div class="n">${pts}</div><div class="l">pts</div></div>
+        <span>${open?'▲':'▼'}</span>
+      </button>
+      ${open ? `
+      <div class="row-body">
+        <div class="cat-tags">${(e.categories||[]).map(k=>`<span class="cat-tag">${esc(CATEGORY_LABEL[k]||k)}</span>`).join('')}</div>
+        ${e.comment ? `<p class="comment">${esc(e.comment)}</p>` : ""}
+        ${(e.dishes&&e.dishes.length) ? `
+          <label>Platos típicos</label>
+          ${e.dishes.map(d=>`<div class="dish-tag"><strong>${esc(d.name)}</strong>${d.comment?`<p>${esc(d.comment)}</p>`:""}</div>`).join('')}
+        `: ""}
+        ${(e.otherDishes&&e.otherDishes.length) ? `
+          <label>Otros platos</label>
+          ${e.otherDishes.map(d=>`<div class="dish-tag"><strong>${esc(d.name)}</strong>${d.notes?`<p>${esc(d.notes)}</p>`:""}</div>`).join('')}
+        `: ""}
+        ${(e.beers&&e.beers.length) ? `
+          <label>🍺 Cervezas</label>
+          ${e.beers.map(b=>`<div class="dish-tag"><strong>${esc(b.name)}</strong> <span style="color:#C1442D;font-family:'Bebas Neue',sans-serif;font-size:13px;">${b.score}</span>${b.comment?`<p>${esc(b.comment)}</p>`:""}</div>`).join('')}
+        `: ""}
+        ${(e.photos&&e.photos.length) ? `
+          <label>Fotos</label>
+          <div class="row-photos">
+            ${e.photos.map(p=>`<button data-photo="${p.id}"><img src="${p.dataUrl}" />${p.caption?`<div class="cap">${esc(p.caption)}</div>`:""}</button>`).join('')}
+          </div>
+        `: ""}
+        ${mapHref ? `<a class="maps-link" href="${mapHref}" target="_blank" rel="noreferrer">📍 Ver en Google Maps ↗</a>` : ""}
+        <div class="row-actions">
+          <button class="btn-edit" data-edit="${e.id}">✎ Editar</button>
+          <button class="btn-del" data-del="${e.id}">🗑 Borrar</button>
+        </div>
+      </div>` : ""}
+    </div>`;
+  }).join('');
+
+  host.querySelectorAll('.row-head').forEach(b=>{
+    b.onclick = ()=>{
+      const id = b.dataset.id;
+      if(openRows.has(id)) openRows.delete(id); else openRows.add(id);
+      renderList();
+    };
+  });
+  host.querySelectorAll('[data-photo]').forEach(b=>{
+    b.onclick = (ev)=>{
+      ev.stopPropagation();
+      const entry = entries.find(x=>(x.photos||[]).some(p=>p.id===b.dataset.photo));
+      const photo = entry && entry.photos.find(p=>p.id===b.dataset.photo);
+      if(photo) window.open(photo.dataUrl, '_blank');
+    };
+  });
+  host.querySelectorAll('[data-edit]').forEach(b=>{
+    b.onclick = (ev)=>{
+      ev.stopPropagation();
+      editing = entries.find(e=>e.id===b.dataset.edit);
+      showForm = true;
+      renderAll();
+      window.scrollTo({top:0, behavior:'smooth'});
+    };
+  });
+  host.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick = (ev)=>{
+      ev.stopPropagation();
+      entries = entries.filter(e=>e.id!==b.dataset.del);
+      save();
+      renderAll();
+    };
+  });
+}
+
+function renderMap(){
+  const host = document.getElementById('mainView');
+  host.innerHTML = `<div id="mapContainer"></div><p class="map-note" id="mapNote"></p>`;
+
+  if(leafletMap){ leafletMap.remove(); leafletMap = null; }
+
+  if(!window.L){
+    document.getElementById('mapContainer').innerHTML = '<p style="text-align:center;padding:40px 0;color:#1D4E64;font-size:13px;">Cargando el mapa…</p>';
+    setTimeout(renderMap, 400);
+    return;
+  }
+
+  const map = L.map('mapContainer').setView(HUELVA_CENTER, 12);
+  leafletMap = map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  const withCoords = entries.filter(e => e.lat && e.lng && !isNaN(Number(e.lat)) && !isNaN(Number(e.lng)));
+  const markers = [];
+  withCoords.forEach(e=>{
+    const pts = avgScore(e).toFixed(1);
+    const icon = L.divIcon({
+      className: "",
+      html: `<div style="background:#D79A2C;color:#fff;border:2px solid #fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.4);">${pts}</div>`,
+      iconSize: [34,34], iconAnchor:[17,17],
+    });
+    const marker = L.marker([Number(e.lat), Number(e.lng)], { icon }).addTo(map);
+    marker.bindPopup(`
+      <div style="font-family:'Work Sans',sans-serif;min-width:150px">
+        <p style="font-family:'Fraunces',serif;font-weight:700;margin:0 0 4px;font-size:14px;color:#201A14;">${esc(e.name)}</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#1D4E64;">Puntuación: <strong>${pts}</strong></p>
+        <button onclick="window.__ligaGoToEntry('${e.id}')" style="background:#123647;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;">Ver ficha</button>
+      </div>
+    `);
+    markers.push(marker);
+  });
+
+  if(markers.length>0){
+    const group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.25));
+  }
+
+  const withoutCoords = entries.length - withCoords.length;
+  const note = document.getElementById('mapNote');
+  if(entries.length===0){
+    note.textContent = "Todavía no hay locales fichados.";
+  } else if(withoutCoords>0){
+    note.textContent = `${withoutCoords} ${withoutCoords===1?'local':'locales'} sin ubicación guardada. Añade coordenadas en su ficha para verlos aquí.`;
+  } else {
+    note.textContent = "";
+  }
+}
+
+window.__ligaGoToEntry = function(id){
+  activeTab = "todos";
+  openRows.add(id);
+  renderAll();
+  setTimeout(()=>{
+    const el = document.getElementById(`row-${id}`);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 150);
+};
+
+function renderMainView(){
+  if(activeTab === "mapa"){ renderMap(); } else { renderList(); }
+}
+
+function renderAll(){
+  renderTabs();
+  renderLeader();
+  renderForm();
+  renderMainView();
+}
+
+document.getElementById('btnAdd').onclick = ()=>{
+  editing = null;
+  draftCategories = []; draftDishes = []; draftOtherDishes = []; draftBeers = []; draftPhotos = [];
+  showForm = true;
+  renderAll();
+};
+
+load();
+renderAll();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
